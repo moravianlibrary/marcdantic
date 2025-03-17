@@ -1,0 +1,3 @@
+https://developers.exlibrisgroup.com/aleph/apis/aleph-x-services/present/
+https://www.loc.gov/marc/bibliographic/
+https://web.archive.org/web/20151112001548/http://dilettantes.code4lib.org/blog/2010/09/a-proposal-to-serialize-marc-in-json
