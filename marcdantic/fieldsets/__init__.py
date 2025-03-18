@@ -1,31 +1,30 @@
 from .control_fields import (
     ControlFields,
-    ControlNumber,
-    ControlNumberIdentifier,
     FixedLengthDataElements,
 )
 from .leader import Leader
 from .numbers_and_codes import (
     Isbn,
-    IsbnEntry,
     Issn,
-    IssnEntry,
     Nbn,
-    NbnEntry,
     NumbersAndCodes,
 )
+from .base import RepeatableField, RepeatableSubfield, VariableFieldModel
+from .marc_issue import MarcIssue
+from .title_related import TitleRelated, TitleStatement
 
 __all__ = [
     "ControlFields",
-    "ControlNumber",
-    "ControlNumberIdentifier",
     "FixedLengthDataElements",
-    "Leader",
     "Isbn",
     "Issn",
+    "Leader",
+    "MarcIssue",
     "Nbn",
-    "IsbnEntry",
-    "IssnEntry",
-    "NbnEntry",
     "NumbersAndCodes",
+    "RepeatableField",
+    "RepeatableSubfield",
+    "TitleRelated",
+    "TitleStatement",
+    "VariableFieldModel",
 ]

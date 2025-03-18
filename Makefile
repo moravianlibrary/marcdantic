@@ -4,19 +4,18 @@ PYTHON := $(PYTHON_VENV)/bin/python
 PYTHON_PIP := $(PYTHON_VENV)/bin/pip
 PYTHON_DEPS := requirements.txt
 
-.PHONY: generate_venv remove_venv regenerate_env
+.PHONY: generate-venv remove-venv regenerate-env publish
 
-generate_venv:
+generate-venv:
 	$(PYTHON_BASE) -m venv $(PYTHON_VENV)
-	$(PYTHON) -m ensurepip  # Ensures pip is available
+	$(PYTHON) -m ensurepip
 	$(PYTHON_PIP) install --upgrade pip
 	$(PYTHON_PIP) install -r $(PYTHON_DEPS)
 
-remove_venv:
+remove-venv:
 	rm -rf $(PYTHON_VENV)
 
-regenerate_env: remove_venv generate_venv
+regenerate-env: remove-venv generate-venv
 
-run:
-	$(PYTHON) main.py
-
+publish:
+	python setup.py sdist bdist_wheel && twine upload dist/*
