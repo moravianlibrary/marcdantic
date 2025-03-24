@@ -41,7 +41,7 @@ DEFAULT_MAPPING = {
         "repeatable": True,
         "subfields": {
             "a": {"subfield": "sigla"},
-            "b": {"subfield": "singature", "repeatable": True},
+            "b": {"subfield": "signature", "repeatable": True},
         },
     },
 }
