@@ -1,4 +1,5 @@
-from typing import List, TypeVar, Optional
+from typing import List, Optional, TypeVar
+
 from pydantic import BaseModel
 
 F = TypeVar("F", bound="BaseModel")
@@ -10,5 +11,5 @@ RepeatableSubfield = Optional[List[S]]
 
 
 class VariableFieldModel(BaseModel):
-    ind1: str | None = None
-    ind2: str | None = None
+    ind1: str
+    ind2: str

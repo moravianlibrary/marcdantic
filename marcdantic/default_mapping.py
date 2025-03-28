@@ -1,7 +1,7 @@
 DEFAULT_MAPPING = {
     "001": {"section": "control_fields", "field": "control_number"},
     "003": {"section": "control_fields", "field": "control_number_identifier"},
-    "006": {"section": "control_fields", "field": "latest_transaction"},
+    "005": {"section": "control_fields", "field": "latest_transaction"},
     "008": {
         "section": "control_fields",
         "field": "fixed_length_data_elements",

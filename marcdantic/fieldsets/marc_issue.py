@@ -1,10 +1,18 @@
-from pydantic import BaseModel
+from enum import Enum
 from typing import Dict, List
+
+from pydantic import BaseModel
+
+
+class IssuanceType(Enum):
+    Unit = "Unit"
+    Volume = "Volume"
+    Bundle = "Bundle"
 
 
 class MarcIssue(BaseModel):
     barcode: str
-    issuance_type: str | None = None
+    issuance_type: IssuanceType
     volume_number: str | None = None
     volume_year: str | None = None
     bundle: str | None

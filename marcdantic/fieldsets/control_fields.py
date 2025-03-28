@@ -1,7 +1,7 @@
 from datetime import datetime
+from typing import Any, Dict
 
 from pydantic import BaseModel, field_validator, model_validator
-from typing import Any, Dict
 
 
 class FixedLengthDataElements(BaseModel):
@@ -43,11 +43,16 @@ class FixedLengthDataElements(BaseModel):
 
 class ControlFields(BaseModel):
     control_number: str
-    control_number_identifier: str
+    control_number_identifier: str | None = None
     latest_transaction: datetime | None = None
     fixed_length_data_elements: FixedLengthDataElements
 
-    @field_validator("latest_transaction")
+    @field_validator("latest_transaction", mode="before")
     def validate_latest_transaction(cls, value: str) -> datetime:
-        print(value)
-        return datetime.strptime(value, "%Y%m%d%H%M%S")
+        try:
+            return datetime.strptime(value, "%Y%m%d%H%M%S.%f")
+        except ValueError:
+            raise ValueError(
+                "Invalid format: "
+                "Must follow 'yyyymmddhhmmss.f' (ISO 8601 format)"
+            )
