@@ -16,6 +16,3 @@ remove-venv:
 	rm -rf $(PYTHON_VENV)
 
 regenerate-env: remove-venv generate-venv
-
-publish:
-	python setup.py sdist bdist_wheel && twine upload dist/*

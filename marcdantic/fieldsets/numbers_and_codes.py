@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from .base import RepeatableField, VariableFieldModel
+
+from .common import RepeatableField, VariableFieldModel
 
 
 class Nbn(VariableFieldModel):

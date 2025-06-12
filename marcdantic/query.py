@@ -34,3 +34,11 @@ class MarcBoolQuery(BaseModel):
 
 
 MarcBoolQuery.model_rebuild()
+
+
+class MarcSearchRequest(BaseModel):
+    query: MarcBoolQuery
+    page: int = Field(default=1, ge=1, description="Page number (1-based)")
+    page_size: int = Field(
+        default=10, ge=1, le=1000, description="Results per page (max 1000)"
+    )

@@ -3,8 +3,8 @@ from typing import Any, Dict, List
 
 from lxml.etree import _Element
 
+from .constants import LEADER_LENGTH, MARC_NS
 from .mapper import MarcMapper
-from .marc_constants import LEADER_LENGTH, MARC_NS
 
 
 def from_xml(root: _Element, mapper: MarcMapper) -> Dict[str, Any]:

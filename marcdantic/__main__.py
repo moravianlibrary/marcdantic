@@ -1,6 +1,7 @@
 import argparse
 import os
-from .marc_record import MarcRecord
+
+from .record import MarcRecord
 
 
 def process_file(file_path: str) -> None:

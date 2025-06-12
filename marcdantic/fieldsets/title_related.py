@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from .base import VariableFieldModel
+
+from .common import VariableFieldModel
 
 
 class TitleStatement(VariableFieldModel):

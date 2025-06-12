@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
+from .constants import DIRECTORY_ENTRY_LENGTH, LEADER_LENGTH
 from .mapper import MarcMapper
-from .marc_constants import DIRECTORY_ENTRY_LENGTH, LEADER_LENGTH
 
 
 def from_mrc(data: bytes, encoding: str, mapper: MarcMapper) -> Dict[str, Any]:
