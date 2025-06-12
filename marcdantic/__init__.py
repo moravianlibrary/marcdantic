@@ -16,6 +16,7 @@ from .fieldsets import (
     VariableFieldModel,
 )
 from .mapper import MarcMapper
+from .marc_query import MarcBoolQuery, MarcCondition, MarcTerm, SearchOperator
 from .marc_record import MarcRecord
 
 __all__ = [
@@ -26,13 +27,17 @@ __all__ = [
     "Issn",
     "IssuanceType",
     "Leader",
+    "MarcBoolQuery",
+    "MarcCondition",
     "MarcIssue",
     "MarcMapper",
     "MarcRecord",
+    "MarcTerm",
     "Nbn",
     "NumbersAndCodes",
     "RepeatableField",
     "RepeatableSubfield",
+    "SearchOperator",
     "TitleRelated",
     "TitleStatement",
     "VariableFieldModel",
