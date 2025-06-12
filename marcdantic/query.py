@@ -13,12 +13,12 @@ class SearchOperator(str, Enum):
 
 
 class MarcCondition(BaseModel):
-    field: str = Field(..., min_length=3, max_length=3, regex=r"^\d{3}$")
-    subfield: str | None = Field(None, regex=r"^[a-z0-9]$")
+    field: str = Field(..., min_length=3, max_length=3, pattern=r"^\d{3}$")
+    subfield: str | None = Field(None, pattern=r"^[a-z0-9]$")
     value: str
     operator: SearchOperator = SearchOperator.Exact
-    ind1: str | None = Field(None, regex=r"^[\\_0-9a-z ]?$")
-    ind2: str | None = Field(None, regex=r"^[\\_0-9a-z ]?$")
+    ind1: str | None = Field(None, pattern=r"^[\\_0-9a-z ]?$")
+    ind2: str | None = Field(None, pattern=r"^[\\_0-9a-z ]?$")
 
 
 MarcTerm = Union[MarcCondition, "MarcBoolQuery"]
