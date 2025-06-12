@@ -3,14 +3,12 @@ from typing import ClassVar, Dict, List
 from pydantic import BaseModel
 
 from .default_mapping import DEFAULT_MAPPING
-from .fieldsets import (
-    ControlFields,
-    Leader,
-    MarcIssue,
-    NumbersAndCodes,
-    RepeatableField,
-    TitleRelated,
-)
+from .fieldsets.common import RepeatableField
+from .fieldsets.control_fields import ControlFields
+from .fieldsets.issue import MarcIssue
+from .fieldsets.leader import Leader
+from .fieldsets.numbers_and_codes import NumbersAndCodes
+from .fieldsets.title_related import TitleRelated
 from .from_mrc import from_mrc
 from .from_xml import from_xml
 from .mapper import MarcMapper
