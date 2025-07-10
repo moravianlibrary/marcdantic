@@ -17,7 +17,7 @@ dynamic = ["dependencies", "description", "readme"]
 [tool.setuptools]
 packages = [
     "marcdantic",
-    "marcdantic.fieldsets"
+    "marcdantic.selectors"
 ]
 
 [tool.setuptools.dynamic]
