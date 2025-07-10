@@ -1,60 +1,52 @@
-from typing import ClassVar, Dict, List
+from lxml.etree import _Element
+from pydantic import BaseModel, Field
 
-from pydantic import BaseModel
-
-from .default_mapping import DEFAULT_MAPPING
-from .fieldsets.common import RepeatableField
-from .fieldsets.control_fields import ControlFields
-from .fieldsets.issue import MarcIssue
-from .fieldsets.leader import Leader
-from .fieldsets.numbers_and_codes import NumbersAndCodes
-from .fieldsets.title_related import TitleRelated
+from .fields import FixedFields, VariableFields
 from .from_mrc import from_mrc
 from .from_xml import from_xml
-from .mapper import MarcMapper
-
-LocalFields = Dict[
-    str, Dict[str, str | List[str]] | List[Dict[str, str | List[str]]]
-]
+from .selectors.control_fields import ControlFields
+from .selectors.leader import Leader
+from .selectors.local_fields import LocalFields
+from .selectors.marc_issues import MarcIssues
+from .selectors.numbers_and_codes import NumbersAndCodes
+from .selectors.title_related import TitleRelated
 
 
 class MarcRecord(BaseModel):
-    _mapper: ClassVar[MarcMapper] = MarcMapper(mapping=DEFAULT_MAPPING)
+    marc: bytes = Field(..., exclude=True)
 
-    marc: bytes
+    leader: str
+    fixed_fields: FixedFields
+    variable_fields: VariableFields
 
-    leader: Leader
+    @property
+    def leader_data(self) -> Leader:
+        return Leader(self.leader)
 
-    control_fields: ControlFields
+    @property
+    def control_fields(self) -> ControlFields:
+        return ControlFields(self.fixed_fields)
 
-    numbers_and_codes: NumbersAndCodes | None = None
-    title_related: TitleRelated | None = None
+    @property
+    def numbers_and_codes(self) -> NumbersAndCodes:
+        return NumbersAndCodes(self.variable_fields)
 
-    issues: RepeatableField[MarcIssue] = None
+    @property
+    def title_related(self) -> TitleRelated:
+        return TitleRelated(self.variable_fields)
 
-    local: LocalFields = {}
+    @property
+    def issues(self) -> MarcIssues:
+        return MarcIssues(self.variable_fields)
 
-    def has_local(self, field: str, subfield: str) -> bool:
-        return field in self.local and (
-            isinstance(self.local[field], list)
-            and any(subfield in entry for entry in self.local[field])
-            or subfield in self.local[field]
-        )
-
-    def get_local(self, field: str, subfield: str) -> str | List[str]:
-        if isinstance(self.local[field], list):
-            values = [entry[subfield] for entry in self.local[field]]
-            if not values:
-                raise KeyError(
-                    f"Subfield '{subfield}' not found in field '{field}'"
-                )
-            return values
-        return self.local[field][subfield]
+    @property
+    def local_fields(self) -> LocalFields:
+        return LocalFields(self.variable_fields)
 
     @classmethod
     def from_mrc(cls, data: bytes, encoding: str = "utf-8") -> "MarcRecord":
-        return cls(**from_mrc(data, encoding, cls._mapper))
+        return cls.model_validate(from_mrc(data, encoding))
 
     @classmethod
-    def from_xml(cls, data: bytes) -> "MarcRecord":
-        return cls(**from_xml(data, cls._mapper))
+    def from_xml(cls, data: _Element) -> "MarcRecord":
+        return cls.model_validate(from_xml(data))

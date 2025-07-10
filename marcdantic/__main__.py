@@ -1,6 +1,8 @@
 import argparse
 import os
 
+from lxml import etree
+
 from .record import MarcRecord
 
 
@@ -19,12 +21,18 @@ def process_file(file_path: str) -> None:
             content = file.read()
             # Validate and print the JSON output from MarcRecord
             print(f"Processing file: {file_path}")
-            print(
-                MarcRecord.model_validate(content).model_dump_json(
-                    exclude_none=True, indent=2
-                )
-            )
-    except Exception as e:
+
+            record: MarcRecord | None = None
+
+            if file_path.endswith(".json"):
+                MarcRecord.model_validate(content)
+            elif file_path.endswith(".mrc"):
+                record = MarcRecord.from_mrc(content)
+            elif file_path.endswith(".xml"):
+                record = MarcRecord.from_xml(etree.fromstring(content))
+
+            print(record.model_dump_json(exclude_none=True, indent=2))
+    except NotADirectoryError as e:
         print(f"Error processing file {file_path}: {e}")
 
 
