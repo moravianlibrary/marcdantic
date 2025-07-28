@@ -10,8 +10,58 @@ from .constants import LEADER_LENGTH, MARC_NS
 
 
 def from_xml(root: _Element) -> Dict[str, Any]:
+    """
+    Parses a MARC record from its XML representation into
+    a structured dictionary.
+
+    This function converts an XML MARC record element
+    (following MARCXML standard) into a dictionary containing:
+      - the MARC leader string,
+      - fixed control fields,
+      - variable data fields (with indicators and subfields),
+      - and a reconstructed raw MARC byte string compliant with MARC21 format.
+
+    Parameters
+    ----------
+    root : lxml.etree._Element
+        The root XML element of the MARC record
+        (expected to use MARC XML namespace).
+
+    Returns
+    -------
+    dict[str, Any]
+        A dictionary with the following keys:
+        - "leader": str
+            The MARC leader string (24 characters).
+        - "control_fields": Dict[str, str]
+            Control fields (tags with no subfields), keyed by their MARC tag.
+        - "variable_fields": Dict[str, List[Dict[str, Any]]]
+            Variable fields keyed by MARC tag; each field contains indicators
+            and subfields.
+        - "marc": bytes
+            The reconstructed raw MARC21 byte sequence representing
+            the full record.
+
+    Raises
+    ------
+    ValueError
+        If the leader string length is not equal to the expected LEADER_LENGTH.
+        If a MARC tag does not have exactly 3 characters.
+
+    Notes
+    -----
+    - The function validates tags against a pattern and substitutes aliases
+      using `MARC_MAPPER`.
+    - The leader and directory are rebuilt to reflect the reconstructed
+      raw MARC bytes.
+    - Control fields are stored in `control_fields` and variable data fields
+      with indicators and subfields are stored in `variable_fields`.
+    - The function builds the MARC record raw bytes
+      with proper directory entries and field terminators
+      as per MARC21 specification.
+    """
     record: Dict[str, Any] = {
-        "fixed_fields": {},
+        "control_fields": {},
         "variable_fields": {},
     }
     directory: List[bytes] = []
@@ -56,7 +106,7 @@ def from_xml(root: _Element) -> Dict[str, Any]:
                 continue
             tag = MARC_MAPPER.tag_alias[tag]
 
-        record["fixed_fields"][tag] = text
+        record["control_fields"][tag] = text
         append_to_marc(tag, text.encode("utf-8"))
 
     # Process Data Fields

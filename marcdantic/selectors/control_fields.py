@@ -35,24 +35,24 @@ class FixedLengthDataElements:
 
 
 class ControlFields:
-    def __init__(self, fixed_fields: FixedFields):
-        self._fixed_fields = fixed_fields
+    def __init__(self, control_fields: FixedFields):
+        self._control_fields = control_fields
 
     @property
     def control_number(self) -> str:
-        return self._fixed_fields["001"]
+        return self._control_fields["001"]
 
     @property
     def control_number_identifier(self) -> str | None:
-        return self._fixed_fields.get("003", None)
+        return self._control_fields.get("003", None)
 
     @property
     def latest_transaction(self) -> datetime | None:
-        if "005" not in self._fixed_fields:
+        if "005" not in self._control_fields:
             return None
         try:
             return datetime.strptime(
-                self._fixed_fields["005"], "%Y%m%d%H%M%S.%f"
+                self._control_fields["005"], "%Y%m%d%H%M%S.%f"
             )
         except ValueError:
             raise ValueError(
@@ -62,4 +62,4 @@ class ControlFields:
 
     @property
     def fixed_length_data_elements(self) -> FixedLengthDataElements:
-        return FixedLengthDataElements(self._fixed_fields["008"])
+        return FixedLengthDataElements(self._control_fields["008"])

@@ -10,7 +10,8 @@ from .fields import SubfieldCode
 
 
 class LocalFieldMapping(BaseModel):
-    """Mapping of a MARC field to a local field representation.
+    """
+    Mapping of a MARC field to a local field representation.
 
     Attributes
     ----------
@@ -56,6 +57,10 @@ class InverseLocalMapping(RootModel[Dict[str, InverseLocalFieldMapping]]):
 
 
 class MarcIssueMapping(BaseModel):
+    """
+    Defines the mapping of MARC issue-related fields and subfields.
+    """
+
     tag: str
     barcode: SubfieldCode
     issuance_type: SubfieldCode
@@ -66,6 +71,10 @@ class MarcIssueMapping(BaseModel):
 
 
 class MarcMapper:
+    """
+    Central class managing MARC field mappings to local representations.
+    """
+
     tag_alias: Dict[str, str] = {}
     local: InverseLocalMapping = InverseLocalMapping.model_validate(
         DEFAULT_INVERSE_LOCAL_MAPPING
@@ -89,3 +98,7 @@ class MarcMapper:
 
 
 MARC_MAPPER = MarcMapper
+"""
+Global instance of `MarcMapper` used throughout the application to
+handle MARC-to-local and issue mappings.
+"""
