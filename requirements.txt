@@ -1,2 +1,2 @@
 pydantic==2.10.6
-lxml
+lxml==6.0.0

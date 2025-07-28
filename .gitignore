@@ -6,3 +6,4 @@ build/
 dist/
 marcdantic.egg-info/
 
+.coverage

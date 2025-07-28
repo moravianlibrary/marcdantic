@@ -4,6 +4,8 @@
 
 Built on **Pydantic** for robust data validation, **marcdantic** supports parsing MARC records from both **binary MARC (MRC)** and **MARC XML** formats, producing clean, structured Python dictionaries for further processing or storage.
 
+---
+
 ## Features
 
 * **Binary MARC Parsing (`from_mrc`)**: Decode raw MARC21 records from their binary format with support for various encodings. Extracts leaders, control fields, variable fields, indicators, and subfields.
@@ -88,3 +90,13 @@ query = MarcBoolQuery(
 
 search_request = MarcSearchRequest(query=query, page=1, page_size=20)
 ```
+
+---
+
+## Resources
+
+* [Ex Libris Aleph X-Services – Present Service](https://developers.exlibrisgroup.com/aleph/apis/aleph-x-services/present/)
+* [Library of Congress MARC Bibliographic Standard](https://www.loc.gov/marc/bibliographic/)
+* [A Proposal to Serialize MARC in JSON (Archived)](https://web.archive.org/web/20151112001548/http://dilettantes.code4lib.org/blog/2010/09/a-proposal-to-serialize-marc-in-json)
+
+These references provide background on MARC structure, encoding, and usage in real-world library systems.

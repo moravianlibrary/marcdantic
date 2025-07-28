@@ -114,7 +114,7 @@ def from_mrc(data: bytes, encoding: str) -> Dict[str, Any]:
 
             subfields = {}
             for subfield_entry in entry_data[3:].split(b"\x1f"):
-                subfields.setdefault(subfield_entry[0:1], []).append(
+                subfields.setdefault(decode(subfield_entry[0:1]), []).append(
                     decode(subfield_entry[1:])
                 )
 
