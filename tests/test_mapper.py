@@ -23,3 +23,7 @@ class TestMarcMapper(TestCase):
         MarcMapper.set_issue_mapping(issue_mapping)
         self.assertEqual(MarcMapper.issue.tag, "008")
         self.assertEqual(MarcMapper.issue.barcode, "a")
+
+    def test_get_non_existent_local_value(self):
+        result = MarcMapper.local.get("nonexistent", default="default_value")
+        self.assertEqual(result, "default_value")

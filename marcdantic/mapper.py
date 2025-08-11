@@ -53,7 +53,8 @@ class InverseLocalMapping(RootModel[Dict[str, InverseLocalFieldMapping]]):
     Inverse mapping of local fields to MARC field representations.
     """
 
-    pass
+    def get(self, key, default=None):
+        return self.root.get(key, default)
 
 
 class MarcIssueMapping(BaseModel):

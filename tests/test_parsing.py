@@ -23,7 +23,6 @@ class TestMarcSearchRequest(TestCase):
 
     def test_invalid_field_length(self):
         with self.assertRaises(ValidationError):
-            # field length not 3
             MarcCondition(field="24", value="test")
 
     def test_marc_bool_query(self):

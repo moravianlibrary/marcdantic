@@ -64,7 +64,6 @@ class TestParsers(unittest.TestCase):
         self.assertEqual(record["control_fields"]["001"], "1234")
 
         self.assertIn("245", record["variable_fields"])
-        print(record["variable_fields"]["245"])
         self.assertEqual(
             record["variable_fields"]["245"][0]["subfields"]["a"][0],
             "Test Title",
