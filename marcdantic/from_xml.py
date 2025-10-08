@@ -33,8 +33,8 @@ def from_xml(root: _Element) -> Dict[str, Any]:
         A dictionary with the following keys:
         - "leader": str
             The MARC leader string (24 characters).
-        - "control_fields": Dict[str, str]
-            Control fields (tags with no subfields), keyed by their MARC tag.
+        - "fixed_fields": Dict[str, str]
+            Fixed fields with no subfields, keyed by their MARC tag.
         - "variable_fields": Dict[str, List[Dict[str, Any]]]
             Variable fields keyed by MARC tag; each field contains indicators
             and subfields.
@@ -54,14 +54,14 @@ def from_xml(root: _Element) -> Dict[str, Any]:
       using `MARC_MAPPER`.
     - The leader and directory are rebuilt to reflect the reconstructed
       raw MARC bytes.
-    - Control fields are stored in `control_fields` and variable data fields
+    - Fixed fields are stored in `fixed_fields` and variable data fields
       with indicators and subfields are stored in `variable_fields`.
     - The function builds the MARC record raw bytes
       with proper directory entries and field terminators
       as per MARC21 specification.
     """
     record: Dict[str, Any] = {
-        "control_fields": {},
+        "fixed_fields": {},
         "variable_fields": {},
     }
     directory: List[bytes] = []
@@ -106,7 +106,7 @@ def from_xml(root: _Element) -> Dict[str, Any]:
                 continue
             tag = MARC_MAPPER.tag_alias[tag]
 
-        record["control_fields"][tag] = text
+        record["fixed_fields"][tag] = text
         append_to_marc(tag, text.encode("utf-8"))
 
     # Process Data Fields

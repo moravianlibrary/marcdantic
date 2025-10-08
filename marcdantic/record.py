@@ -28,8 +28,8 @@ class MarcRecord(BaseModel):
     leader : str
         The MARC leader string.
 
-    control_fields : FixedFields
-        A dictionary mapping control field tags (e.g., "008", "005")
+    fixed_fields : FixedFields
+        A dictionary mapping fixed field tags (e.g., "008", "005")
         to their values.
 
     variable_fields : VariableFields
@@ -72,7 +72,7 @@ class MarcRecord(BaseModel):
     marc: bytes = Field(..., exclude=True)
 
     leader: str
-    control_fields: FixedFields
+    fixed_fields: FixedFields
     variable_fields: VariableFields
 
     @property
@@ -81,7 +81,7 @@ class MarcRecord(BaseModel):
 
     @property
     def control_fields(self) -> ControlFields:
-        return ControlFields(self.control_fields)
+        return ControlFields(self.fixed_fields)
 
     @property
     def numbers_and_codes(self) -> NumbersAndCodes:

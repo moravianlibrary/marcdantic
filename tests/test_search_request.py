@@ -38,11 +38,11 @@ class TestParsers(unittest.TestCase):
     def test_from_xml(self):
         record = from_xml(self.xml_root)
         self.assertIn("leader", record)
-        self.assertIn("control_fields", record)
+        self.assertIn("fixed_fields", record)
         self.assertIn("variable_fields", record)
 
-        self.assertIn("001", record["control_fields"])
-        self.assertEqual(record["control_fields"]["001"], "123456")
+        self.assertIn("001", record["fixed_fields"])
+        self.assertEqual(record["fixed_fields"]["001"], "123456")
 
         self.assertIn("245", record["variable_fields"])
         self.assertEqual(
@@ -57,11 +57,11 @@ class TestParsers(unittest.TestCase):
     def test_from_mrc(self):
         record = from_mrc(self.sample_mrc, encoding="ascii")
         self.assertIn("leader", record)
-        self.assertIn("control_fields", record)
+        self.assertIn("fixed_fields", record)
         self.assertIn("variable_fields", record)
 
-        self.assertIn("001", record["control_fields"])
-        self.assertEqual(record["control_fields"]["001"], "1234")
+        self.assertIn("001", record["fixed_fields"])
+        self.assertEqual(record["fixed_fields"]["001"], "1234")
 
         self.assertIn("245", record["variable_fields"])
         self.assertEqual(

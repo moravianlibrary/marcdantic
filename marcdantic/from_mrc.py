@@ -32,8 +32,8 @@ def from_mrc(data: bytes, encoding: str) -> Dict[str, Any]:
         - "leader": str
             The leader string extracted from the record
             (usually 24 characters).
-        - "control_fields": Dict[str, str]
-            Control fields (fixed fields without subfields), keyed by tag.
+        - "fixed_fields": Dict[str, str]
+            Fixed fields without subfields, keyed by tag.
         - "variable_fields": Dict[str, List[Dict[str, Any]]]
             Variable fields keyed by tag, each containing:
               - 'ind1': first indicator character,
@@ -74,7 +74,7 @@ def from_mrc(data: bytes, encoding: str) -> Dict[str, Any]:
     record = {
         "marc": data,
         "leader": decode_slice(data, 0, LEADER_LENGTH),
-        "control_fields": {},
+        "fixed_fields": {},
         "variable_fields": {},
     }
 
@@ -105,7 +105,7 @@ def from_mrc(data: bytes, encoding: str) -> Dict[str, Any]:
             entry_tag = MARC_MAPPER.tag_alias[entry_tag]
 
         if entry_tag in CONTROL_FIELDS:
-            record["control_fields"][entry_tag] = decode(entry_data)
+            record["fixed_fields"][entry_tag] = decode(entry_data)
         else:
             variable_field = {
                 "ind1": ascii_slice(entry_data, 0, 1),

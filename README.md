@@ -8,7 +8,7 @@ Built on **Pydantic** for robust data validation, **marcdantic** supports parsin
 
 ## Features
 
-* **Binary MARC Parsing (`from_mrc`)**: Decode raw MARC21 records from their binary format with support for various encodings. Extracts leaders, control fields, variable fields, indicators, and subfields.
+* **Binary MARC Parsing (`from_mrc`)**: Decode raw MARC21 records from their binary format with support for various encodings. Extracts leaders, fixed fields, variable fields, indicators, and subfields.
 * **MARC XML Parsing (`from_xml`)**: Parse MARC XML records, validate leaders and fields, and reconstruct MARC binary data with correct directory and field lengths.
 * **Pydantic Models for Queries**: Define complex MARC search queries using Pydantic models with strong typing and operator support (exact match, regex, contains, etc.).
 * **Field Validation**: Validates field tags, subfield codes, and indicator characters according to MARC standards.
@@ -58,7 +58,7 @@ with open("record.mrc", "rb") as f:
 
 record = from_mrc(marc_bytes, encoding="utf-8")
 print(record["leader"])
-print(record["control_fields"])
+print(record["fixed_fields"])
 print(record["variable_fields"])
 ```
 
