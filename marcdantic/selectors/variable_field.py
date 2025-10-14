@@ -52,11 +52,10 @@ class FieldSelection:
         field = self.first(selector)
         return field.all(selector.code) if field else []
 
-    def first_value_all_fields(
-        self, selector: FieldSelector
-    ) -> List[str | None]:
+    def first_value_all_fields(self, selector: FieldSelector) -> List[str]:
         fields = self.all(selector)
-        return [f.first(selector.code) for f in fields]
+        values = [f.first(selector.code) for f in fields]
+        return [v for v in values if v]
 
     def all_values_all_fields(
         self, selector: FieldSelector
