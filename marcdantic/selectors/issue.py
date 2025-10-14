@@ -1,12 +1,15 @@
 from typing import List
 
+from marcdantic.fields import VariableFields
 from marcdantic.issue import MarcIssue
 
 from ..mapper import MARC_MAPPER
-from .common import VariableFieldSelector
 
 
-class MarcIssues(VariableFieldSelector):
+class MarcIssues:
+    def __init__(self, variable_fields: VariableFields):
+        self._variable_fields = variable_fields
+
     def all(self) -> List[MarcIssue]:
         return [
             MarcIssue(field)

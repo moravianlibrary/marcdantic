@@ -1,6 +1,6 @@
-from typing import List
-
 from pydantic import BaseModel
+
+from marcdantic.selectors.variable_field import SubfieldSelection
 
 from .fields import VariableField
 from .mapper import MARC_MAPPER
@@ -37,12 +37,9 @@ class MarcIssue(BaseModel):
     bundle : str or None
         The bundle identifier associated with the issue, if available.
 
-    Methods
-    -------
-    local(property: str) -> List[str]
-        Returns a list of values for a custom local property defined in
-        `MARC_MAPPER.issue.local`. If the property is not found, returns an
-        empty list.
+    selection : SubfieldSelection
+        A `SubfieldSelection` instance for accessing subfield values
+        within the issue field.
     """
 
     field: VariableField
@@ -77,21 +74,6 @@ class MarcIssue(BaseModel):
             return None
         return self.field.subfields.get(MARC_MAPPER.issue.bundle, [None])[0]
 
-    def local(self, property: str) -> List[str]:
-        """
-        Get a list of values for a custom local property.
-
-        Parameters
-        ----------
-        property : str
-            The local subfield name as defined in `MARC_MAPPER.issue.local`.
-
-        Returns
-        -------
-        list of str
-            A list of values for the specified local property, or an empty list
-            if the property is not found.
-        """
-        return self.field.subfields.get(
-            MARC_MAPPER.issue.local.get(property) or "", []
-        )
+    @property
+    def selection(self) -> SubfieldSelection:
+        return SubfieldSelection(self.field)

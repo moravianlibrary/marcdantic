@@ -1,4 +1,4 @@
-from . import query
+from . import query, selectors
 from .fields import MarcFieldDefinition
 from .issue import MarcIssue
 from .mapper import MARC_MAPPER, LocalFieldMapping, MarcIssueMapping
@@ -12,4 +12,5 @@ __all__ = [
     "MarcIssueMapping",
     "MarcRecord",
     "query",
+    "selectors",
 ]

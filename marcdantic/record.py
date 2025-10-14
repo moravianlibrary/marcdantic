@@ -1,15 +1,14 @@
 from lxml.etree import _Element
 from pydantic import BaseModel, Field
 
+from marcdantic.selectors.variable_field import FieldSelection
+
 from .fields import FixedFields, VariableFields
 from .from_mrc import from_mrc
 from .from_xml import from_xml
 from .selectors.control_fields import ControlFields
+from .selectors.issue import MarcIssues
 from .selectors.leader import Leader
-from .selectors.local_fields import LocalFields
-from .selectors.marc_issues import MarcIssues
-from .selectors.numbers_and_codes import NumbersAndCodes
-from .selectors.title_related import TitleRelated
 
 
 class MarcRecord(BaseModel):
@@ -45,20 +44,12 @@ class MarcRecord(BaseModel):
     control_fields : ControlFields
         Accessor for control fields such as "001", "005", "008".
 
-    numbers_and_codes : NumbersAndCodes
-        Extracts identifiers and classification codes
-        (e.g., ISBN, ISSN, DDC, etc.).
-
-    title_related : TitleRelated
-        Accessor for title-related fields like title statement
-        and responsibility.
-
     issues : MarcIssues
         Provides access to issue-level bibliographic data
         (e.g., barcode, volume).
 
-    local_fields : LocalFields
-        Accessor for any local/custom-defined MARC fields.
+    selection : FieldSelection
+        Selector for querying variable fields and subfields.
 
     Class Methods
     -------------
@@ -84,20 +75,12 @@ class MarcRecord(BaseModel):
         return ControlFields(self.fixed_fields)
 
     @property
-    def numbers_and_codes(self) -> NumbersAndCodes:
-        return NumbersAndCodes(self.variable_fields)
-
-    @property
-    def title_related(self) -> TitleRelated:
-        return TitleRelated(self.variable_fields)
-
-    @property
     def issues(self) -> MarcIssues:
         return MarcIssues(self.variable_fields)
 
     @property
-    def local_fields(self) -> LocalFields:
-        return LocalFields(self.variable_fields)
+    def selection(self) -> FieldSelection:
+        return FieldSelection(self.variable_fields)
 
     @classmethod
     def from_mrc(cls, data: bytes, encoding: str = "utf-8") -> "MarcRecord":

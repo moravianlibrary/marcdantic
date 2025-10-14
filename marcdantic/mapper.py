@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict
 
 from pydantic import BaseModel, RootModel
 
@@ -68,7 +68,6 @@ class MarcIssueMapping(BaseModel):
     volume_number: SubfieldCode | None = None
     volume_year: SubfieldCode | None = None
     bundle: SubfieldCode | None = None
-    local: Dict[SubfieldCode, List[str]] = {}
 
 
 class MarcMapper:
