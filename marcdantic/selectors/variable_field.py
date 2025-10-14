@@ -33,35 +33,14 @@ class FieldSelection:
     def __init__(self, vfs: VariableFields):
         self._vfs = vfs
 
-    def first(self, selector: FieldSelector) -> SubfieldSelection | None:
-        fields = self._vfs.get(selector.tag)
+    def first(self, tag: FieldTag) -> SubfieldSelection | None:
+        fields = self._vfs.get(tag)
         if not fields:
             return None
         return SubfieldSelection(fields[0])
 
-    def all(self, selector: FieldSelector) -> List[SubfieldSelection]:
-        return [
-            SubfieldSelection(vf) for vf in self._vfs.get(selector.tag, [])
-        ]
-
-    def first_value(self, selector: FieldSelector) -> str | None:
-        field = self.first(selector)
-        return field.first(selector.code) if field else None
-
-    def all_values(self, selector: FieldSelector) -> List[str]:
-        field = self.first(selector)
-        return field.all(selector.code) if field else []
-
-    def first_value_all_fields(self, selector: FieldSelector) -> List[str]:
-        fields = self.all(selector)
-        values = [f.first(selector.code) for f in fields]
-        return [v for v in values if v]
-
-    def all_values_all_fields(
-        self, selector: FieldSelector
-    ) -> List[List[str]]:
-        fields = self.all(selector)
-        return [f.all(selector.code) for f in fields]
+    def all(self, tag: FieldTag) -> List[SubfieldSelection]:
+        return [SubfieldSelection(vf) for vf in self._vfs.get(tag, [])]
 
 
 VariableFieldSelection = str | Tuple[str, ...]
@@ -73,3 +52,7 @@ IssnActiveSelector = FieldSelector(tag="022", code="a")
 
 TitleSelector = FieldSelector(tag="245", code="a")
 SubtitleSelector = FieldSelector(tag="245", code="b")
+
+
+ELocationUrlSelector = FieldSelector(tag="856", code="u")
+ELocationLinkTextSelector = FieldSelector(tag="856", code="y")
