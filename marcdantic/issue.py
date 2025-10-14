@@ -1,9 +1,6 @@
-from pydantic import BaseModel
-
-from marcdantic.selectors.variable_field import SubfieldSelection
+from pydantic import BaseModel, PrivateAttr
 
 from .fields import VariableField
-from .mapper import MARC_MAPPER
 
 
 class MarcIssue(BaseModel):
@@ -14,11 +11,6 @@ class MarcIssue(BaseModel):
     subfields defined in the `MARC_MAPPER`.
 
     Attributes
-    ----------
-    field : VariableField
-        A MARC variable field object containing subfield data.
-
-    Properties
     ----------
     barcode : str
         The barcode value from the MARC issue field. Extracted from the
@@ -36,44 +28,12 @@ class MarcIssue(BaseModel):
 
     bundle : str or None
         The bundle identifier associated with the issue, if available.
-
-    selection : SubfieldSelection
-        A `SubfieldSelection` instance for accessing subfield values
-        within the issue field.
     """
 
-    field: VariableField
+    _variable_field: VariableField | None = PrivateAttr(default=None)
 
-    @property
-    def barcode(self) -> str:
-        return self.field.subfields[MARC_MAPPER.issue.barcode][0]
-
-    @property
-    def issuance_type(self) -> str:
-        return self.field.subfields[MARC_MAPPER.issue.issuance_type][0]
-
-    @property
-    def volume_number(self) -> str | None:
-        if MARC_MAPPER.issue.volume_number is None:
-            return None
-        return self.field.subfields.get(
-            MARC_MAPPER.issue.volume_number, [None]
-        )[0]
-
-    @property
-    def volume_year(self) -> str | None:
-        if MARC_MAPPER.issue.volume_year is None:
-            return None
-        return self.field.subfields.get(MARC_MAPPER.issue.volume_year, [None])[
-            0
-        ]
-
-    @property
-    def bundle(self) -> str | None:
-        if MARC_MAPPER.issue.bundle is None:
-            return None
-        return self.field.subfields.get(MARC_MAPPER.issue.bundle, [None])[0]
-
-    @property
-    def selection(self) -> SubfieldSelection:
-        return SubfieldSelection(self.field)
+    barcode: str
+    issuance_type: str
+    volume_number: str | None
+    volume_year: str | None
+    bundle: str | None

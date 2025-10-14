@@ -1,14 +1,16 @@
 from lxml.etree import _Element
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, PrivateAttr
 
-from marcdantic.selectors.variable_field import FieldSelection
+from marcdantic.selectors import (
+    ControlFieldsSelector,
+    LeaderSelector,
+    MarcIssuesSelector,
+)
 
+from .context import MarcContext
 from .fields import FixedFields, VariableFields
 from .from_mrc import from_mrc
 from .from_xml import from_xml
-from .selectors.control_fields import ControlFields
-from .selectors.issue import MarcIssues
-from .selectors.leader import Leader
 
 
 class MarcRecord(BaseModel):
@@ -60,32 +62,49 @@ class MarcRecord(BaseModel):
         Create a `MarcRecord` instance from a parsed MARCXML `_Element`.
     """
 
-    marc: bytes = Field(..., exclude=True)
+    # --- Private attributes (not part of serialization) ---
+    _marc: bytes | None = PrivateAttr(default=None)
+    _context: MarcContext = PrivateAttr(default_factory=MarcContext)
 
+    # --- Public fields (serialized/deserialized) ---
     leader: str
     fixed_fields: FixedFields
     variable_fields: VariableFields
 
+    # --- Properties ---
     @property
-    def leader_data(self) -> Leader:
-        return Leader(self.leader)
+    def leader_selector(self) -> LeaderSelector:
+        return LeaderSelector(self.leader)
 
     @property
-    def control_fields(self) -> ControlFields:
-        return ControlFields(self.fixed_fields)
+    def control_fields_selector(self) -> ControlFieldsSelector:
+        return ControlFieldsSelector(self.fixed_fields)
 
     @property
-    def issues(self) -> MarcIssues:
-        return MarcIssues(self.variable_fields)
-
-    @property
-    def selection(self) -> FieldSelection:
-        return FieldSelection(self.variable_fields)
+    def issues_selector(self) -> MarcIssuesSelector:
+        return MarcIssuesSelector(self.variable_fields, self._context)
 
     @classmethod
-    def from_mrc(cls, data: bytes, encoding: str = "utf-8") -> "MarcRecord":
-        return cls.model_validate(from_mrc(data, encoding))
+    def from_json(
+        cls, data: dict, context: MarcContext = MarcContext()
+    ) -> "MarcRecord":
+        record = cls.model_validate(data)
+        record._context = context
+        return record
 
     @classmethod
-    def from_xml(cls, data: _Element) -> "MarcRecord":
-        return cls.model_validate(from_xml(data))
+    def from_mrc(
+        cls, data: bytes, context: MarcContext = MarcContext()
+    ) -> "MarcRecord":
+        record = cls.model_validate(from_mrc(data, context))
+        record._marc = data
+        record._context = context
+        return record
+
+    @classmethod
+    def from_xml(
+        cls, data: _Element, context: MarcContext = MarcContext()
+    ) -> "MarcRecord":
+        record = cls.model_validate(from_xml(data, context))
+        record._context = context
+        return record

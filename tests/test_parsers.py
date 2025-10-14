@@ -2,6 +2,7 @@ import unittest
 
 from lxml import etree
 
+from marcdantic.context import MarcContext
 from marcdantic.from_mrc import from_mrc
 from marcdantic.from_xml import from_xml
 
@@ -36,7 +37,7 @@ class TestParsers(unittest.TestCase):
         )
 
     def test_from_xml(self):
-        record = from_xml(self.xml_root)
+        record = from_xml(self.xml_root, MarcContext())
         self.assertIn("leader", record)
         self.assertIn("fixed_fields", record)
         self.assertIn("variable_fields", record)
@@ -55,7 +56,7 @@ class TestParsers(unittest.TestCase):
         )
 
     def test_from_mrc(self):
-        record = from_mrc(self.sample_mrc, encoding="ascii")
+        record = from_mrc(self.sample_mrc, MarcContext())
         self.assertIn("leader", record)
         self.assertIn("fixed_fields", record)
         self.assertIn("variable_fields", record)

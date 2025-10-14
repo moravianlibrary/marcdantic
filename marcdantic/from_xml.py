@@ -3,13 +3,12 @@ from typing import Any, Dict, List
 
 from lxml.etree import _Element
 
-from marcdantic.fields import FIELD_TAG_PATTERN
-from marcdantic.mapper import MARC_MAPPER
-
 from .constants import LEADER_LENGTH, MARC_NS
+from .context import MarcContext
+from .fields import FIELD_TAG_PATTERN, MarcFieldSelector
 
 
-def from_xml(root: _Element) -> Dict[str, Any]:
+def from_xml(root: _Element, context: MarcContext) -> Dict[str, Any]:
     """
     Parses a MARC record from its XML representation into
     a structured dictionary.
@@ -81,37 +80,84 @@ def from_xml(root: _Element) -> Dict[str, Any]:
     record["leader"] = leader_text
 
     # Define a function to append data to the MARC bytes data
-    def append_to_marc(tag: str, field_data: bytes) -> None:
-        if len(tag) != 3:
-            raise ValueError(f"Invalid tag: {tag}")
-
-        nonlocal data_length
-
+    def append_field_data(tag: str, field_data: bytes) -> int:
         directory.append(tag.encode("utf-8"))
         directory.append(f"{len(field_data) + 1:04d}".encode("utf-8"))
         directory.append(f"{data_length:05d}".encode("utf-8"))
 
-        data_length += len(field_data) + 1
+        data_inc = len(field_data) + 1
 
         data.append(field_data)
+
+        return data_inc
 
     # Process Control Fields
     for controlfield in root.findall(".//marc:controlfield", MARC_NS):
         tag = controlfield.get("tag")
-        text = controlfield.text
+        tag_alias = context.tag_aliases.get(tag)
+
+        if tag_alias is None:
+            pass
+        elif tag_alias == "skip":
+            continue
+        elif isinstance(tag_alias, MarcFieldSelector):
+            raise ValueError(
+                f"Control field tag '{tag}' cannot map to a variable field."
+            )
+        else:
+            tag = tag_alias
 
         if not re.match(FIELD_TAG_PATTERN, tag):
-            if tag not in MARC_MAPPER.tag_alias:
-                print(f"Warning: Invalid MARC tag '{tag}' encountered. ")
+            if context.ignore_unknown_tags:
                 continue
-            tag = MARC_MAPPER.tag_alias[tag]
+            raise ValueError(f"Invalid MARC tag '{tag}' encountered.")
 
+        text = controlfield.text
+        data_length += append_field_data(tag, text.encode("utf-8"))
         record["fixed_fields"][tag] = text
-        append_to_marc(tag, text.encode("utf-8"))
 
     # Process Data Fields
     for datafield in root.findall(".//marc:datafield", MARC_NS):
         tag = datafield.get("tag")
+        tag_alias = context.tag_aliases.get(tag)
+
+        if tag_alias is None:
+            pass
+        elif tag_alias == "skip":
+            continue
+        elif isinstance(tag_alias, MarcFieldSelector):
+            tag = tag_alias.tag
+            code = tag_alias.code
+            value = datafield.text
+
+            if not re.match(FIELD_TAG_PATTERN, tag):
+                if context.ignore_unknown_tags:
+                    continue
+                raise ValueError(f"Invalid MARC tag '{tag}' encountered.")
+
+            marc_data = " ".encode("ascii") + " ".encode("ascii")
+            marc_data += "\x1f".encode("utf-8")
+            marc_data += f"{code}".encode("ascii")
+            marc_data += f"{value}".encode("utf-8")
+
+            variable_field = {
+                "ind1": " ",
+                "ind2": " ",
+                "subfields": {code: [value]},
+            }
+
+            data_length += append_field_data(tag, marc_data)
+            record["variable_fields"].setdefault(tag, []).append(
+                variable_field
+            )
+            continue
+        else:
+            tag = tag_alias
+
+        if not re.match(FIELD_TAG_PATTERN, tag):
+            if context.ignore_unknown_tags:
+                continue
+            raise ValueError(f"Invalid MARC tag '{tag}' encountered.")
 
         ind1 = datafield.get("ind1", " ")
         ind2 = datafield.get("ind2", " ")
@@ -132,10 +178,9 @@ def from_xml(root: _Element) -> Dict[str, Any]:
             marc_data += f"{code}".encode("ascii")
             marc_data += f"{value}".encode("utf-8")
 
+        append_field_data(tag, marc_data)
         variable_field["subfields"] = subfields
         record["variable_fields"].setdefault(tag, []).append(variable_field)
-
-        append_to_marc(tag, marc_data)
 
     directory.append(b"\x1e")
     marc_directory = b"".join(directory)

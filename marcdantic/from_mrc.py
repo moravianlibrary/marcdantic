@@ -2,11 +2,11 @@ import re
 from typing import Any, Dict
 
 from .constants import CONTROL_FIELDS, DIRECTORY_ENTRY_LENGTH, LEADER_LENGTH
-from .fields import FIELD_TAG_PATTERN
-from .mapper import MARC_MAPPER
+from .context import MarcContext
+from .fields import FIELD_TAG_PATTERN, MarcFieldSelector
 
 
-def from_mrc(data: bytes, encoding: str) -> Dict[str, Any]:
+def from_mrc(data: bytes, context: MarcContext) -> Dict[str, Any]:
     """
     Parses a raw MARC21 record from its binary representation into
     a structured dictionary.
@@ -66,7 +66,7 @@ def from_mrc(data: bytes, encoding: str) -> Dict[str, Any]:
         return ascii(data[start:end])
 
     def decode(data: bytes) -> str:
-        return data.decode(encoding)
+        return data.decode(context.mrc_encoding)
 
     def decode_slice(data: bytes, start: int, end: int) -> str:
         return decode(data[start:end])
@@ -98,14 +98,37 @@ def from_mrc(data: bytes, encoding: str) -> Dict[str, Any]:
 
         entry_data = data[data_start:data_end]
 
+        tag_alias = context.tag_aliases.get(entry_tag)
+        entry_code = None
+
+        if not tag_alias:
+            pass
+        elif tag_alias == "skip":
+            continue
+        elif isinstance(tag_alias, MarcFieldSelector):
+            entry_tag = tag_alias.tag
+            entry_code = tag_alias.code
+        else:
+            entry_tag = tag_alias
+
         if not re.match(FIELD_TAG_PATTERN, entry_tag):
-            if entry_tag not in MARC_MAPPER.tag_alias:
-                print(f"Warning: Invalid MARC tag '{entry_tag}' encountered. ")
+            if context.ignore_unknown_tags:
                 continue
-            entry_tag = MARC_MAPPER.tag_alias[entry_tag]
+            raise ValueError(f"Invalid MARC tag '{entry_tag}' encountered.")
 
         if entry_tag in CONTROL_FIELDS:
             record["fixed_fields"][entry_tag] = decode(entry_data)
+        elif entry_code:
+            entry_text = decode(entry_data)
+            if not entry_text.strip():
+                continue
+            record["variable_fields"].setdefault(entry_tag, []).append(
+                {
+                    "ind1": " ",
+                    "ind2": " ",
+                    "subfields": {entry_code: [decode(entry_data)]},
+                }
+            )
         else:
             variable_field = {
                 "ind1": ascii_slice(entry_data, 0, 1),

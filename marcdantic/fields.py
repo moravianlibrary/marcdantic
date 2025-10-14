@@ -1,8 +1,9 @@
-from typing import Annotated, Dict, List
+from typing import Annotated, Any, Dict, List
 
-from pydantic import BaseModel, Field, model_validator
+import jq
+from pydantic import BaseModel, Field, PrivateAttr, RootModel, model_validator
 
-# Pattern used to validate field tags (must be exactly three digits)
+#: Pattern used to validate field tags (must be exactly three digits)
 FIELD_TAG_PATTERN = r"^\d{3}$"
 
 #: MARC field tag (e.g., '100', '245')
@@ -43,25 +44,67 @@ class VariableField(BaseModel):
             self.ind2 = None
         return self
 
+    def query(self, jq_filter: str) -> Any:
+        """
+        Execute a jq query on the variable field.
 
-#: Mapping of fixed field tags to their values (e.g., {'008': '...'})
-FixedFields = Dict[FieldTag, str]
-#: Mapping of variable field tags to a list of field instances
-# (e.g., {'245': [VariableField(...)]})
-VariableFields = Dict[FieldTag, List[VariableField]]
+        Parameters
+        ----------
+        jq_filter : str
+            A jq filter string, e.g., '.subfields.a[]'
+
+        Returns
+        -------
+        Any
+            The result of the jq query (list, string, number, etc.)
+        """
+        compiled = jq.compile(jq_filter)
+        return compiled.input(self.model_dump()).all()
 
 
-class MarcFieldDefinition(BaseModel):
+class FixedFields(RootModel[Dict[FieldTag, str]]):
+    pass
+
+
+class VariableFields(RootModel[Dict[FieldTag, List[VariableField]]]):
+    _plain_root: Dict[str, Any] | None = PrivateAttr(default=None)
+
+    def query(self, jq_filter: str) -> Any:
+        """
+        Execute a jq query on the variable fields.
+
+        Parameters
+        ----------
+        jq_filter : str
+            A jq filter string, e.g., '.["015"][].subfields.a[]'
+
+        Returns
+        -------
+        Any
+            The result of the jq query (list, string, number, etc.)
+        """
+        compiled = jq.compile(jq_filter)
+
+        if self._plain_root is None:
+            self._plain_root = {
+                tag: [field.model_dump() for field in fields]
+                for tag, fields in self.root.items()
+            }
+
+        return compiled.input(self._plain_root).all()
+
+
+class MarcFieldSelector(BaseModel):
     """
-    Schema definition for a MARC field specification.
+    Schema definition for a MARC field selector.
 
     Attributes
     ----------
-    field : FieldTag
+    tag : FieldTag
         The tag of the MARC field (e.g., '100', '245').
-    subfield : SubfieldCode or None, optional
+    code : SubfieldCode or None, optional
         Optional subfield code if targeting a specific subfield.
     """
 
-    field: FieldTag
-    subfield: SubfieldCode | None = None
+    tag: FieldTag
+    code: SubfieldCode | None = None

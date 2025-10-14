@@ -10,7 +10,7 @@ from marcdantic.query import (
 )
 
 
-class TestMarcSearchRequest(TestCase):
+class TestSearchRequests(TestCase):
     def test_valid_marc_condition(self):
         cond = MarcCondition(
             field="245",
