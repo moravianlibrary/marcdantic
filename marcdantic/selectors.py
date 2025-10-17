@@ -172,14 +172,14 @@ class MarcIssuesSelector:
         return self._create_issue(field)
 
 
-NbnActiveJq = '.["015"][].subfields.a[]'
-IsbnActiveJq = '.["020"][].subfields.a[]'
-IsbnTermsOfAvailabilityJq = '.["020"][].subfields.c[]'
-IssnActiveJq = '.["022"][].subfields.a[]'
-IsxnActiveJq = '.["020","022"][].subfields.a[]'
+NbnActiveJq = '.["015"]?[]?.subfields.a[]?'
+IsbnActiveJq = '.["020"]?[]?.subfields.a[]?'
+IsbnTermsOfAvailabilityJq = '.["020"]?[]?.subfields.c[]?'
+IssnActiveJq = '.["022"]?[]?.subfields.a[]?'
+IsxnActiveJq = '.["020","022"]?[]?.subfields.a[]?'
 
-TitleJq = '.["245"][].subfields.a[]'
-SubtitleJq = '.["245"][].subfields.b[]'
+TitleJq = '.["245"]?[]?.subfields.a[]?'
+SubtitleJq = '.["245"]?[]?.subfields.b[]?'
 
-ELocationUrlJq = '.["856"][].subfields.u[]'
-ELocationLinkTextJq = '.["856"][].subfields.y[]'
+ELocationUrlJq = '.["856"]?[]?.subfields.u[]?'
+ELocationLinkTextJq = '.["856"]?[]?.subfields.y[]?'

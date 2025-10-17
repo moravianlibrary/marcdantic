@@ -61,47 +61,6 @@ class VariableField(BaseModel):
         compiled = jq.compile(jq_filter)
         return compiled.input(self.model_dump()).all()
 
-    def query_subfield_values(self, jq_filter: str) -> List[str]:
-        """
-        Execute a jq query that returns subfield values.
-
-        Parameters
-        ----------
-        jq_filter : str
-            A jq filter string that selects subfield values,
-            e.g., '.subfields.a[]'
-
-        Returns
-        -------
-        List[str]
-            List of subfield values matching the query.
-        """
-        results = self.query(jq_filter)
-        return [str(r) for r in results]
-
-    def query_subfield_value(self, jq_filter: str) -> str | None:
-        """
-        Execute a jq query that returns a single subfield value.
-
-        Parameters
-        ----------
-        jq_filter : str
-            A jq filter string that selects a subfield value,
-            e.g., '.subfields.a[0]'
-
-        Returns
-        -------
-        str | None
-            The subfield value matching the query,
-            or None if no match is found.
-        """
-        results = self.query(jq_filter)
-        if not results:
-            return None
-        if len(results) > 1:
-            raise ValueError("Query returned multiple results; expected one.")
-        return str(results[0])
-
 
 class FixedFields(RootModel[Dict[FieldTag, str]]):
     pass
@@ -174,6 +133,51 @@ class VariableFields(RootModel[Dict[FieldTag, List[VariableField]]]):
         if len(results) > 1:
             raise ValueError("Query returned multiple results; expected one.")
         return VariableField.model_validate(results[0])
+
+    def query_subfields(
+        self, jq_filter: str
+    ) -> List[Dict[SubfieldCode, List[str]]]:
+        """
+        Execute a jq query that returns subfields.
+
+        Parameters
+        ----------
+        jq_filter : str
+            A jq filter string that selects subfields,
+            e.g., '.["100"][].subfields'
+
+        Returns
+        -------
+        List[Dict[SubfieldCode, List[str]]]
+            List of subfield dictionaries matching the query.
+        """
+        results = self.query(jq_filter)
+        return [Dict[SubfieldCode, List[str]](r) for r in results]
+
+    def query_subfield(
+        self, jq_filter: str
+    ) -> Dict[SubfieldCode, List[str]] | None:
+        """
+        Execute a jq query that returns a single subfield dictionary.
+
+        Parameters
+        ----------
+        jq_filter : str
+            A jq filter string that selects a subfield dictionary,
+            e.g., '.["100"][0].subfields'
+
+        Returns
+        -------
+        Dict[SubfieldCode, List[str]] | None
+            The subfield dictionary matching the query,
+            or None if no match is found.
+        """
+        results = self.query(jq_filter)
+        if not results:
+            return None
+        if len(results) > 1:
+            raise ValueError("Query returned multiple results; expected one.")
+        return Dict[SubfieldCode, List[str]](results[0])
 
     def query_subfield_values(self, jq_filter: str) -> List[str]:
         """
