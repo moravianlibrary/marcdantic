@@ -152,7 +152,7 @@ class VariableFields(RootModel[Dict[FieldTag, List[VariableField]]]):
             List of subfield dictionaries matching the query.
         """
         results = self.query(jq_filter)
-        return [Dict[SubfieldCode, List[str]](r) for r in results]
+        return [dict[SubfieldCode, List[str]](r) for r in results]
 
     def query_subfield(
         self, jq_filter: str
@@ -177,7 +177,7 @@ class VariableFields(RootModel[Dict[FieldTag, List[VariableField]]]):
             return None
         if len(results) > 1:
             raise ValueError("Query returned multiple results; expected one.")
-        return Dict[SubfieldCode, List[str]](results[0])
+        return dict[SubfieldCode, List[str]](results[0])
 
     def query_subfield_values(self, jq_filter: str) -> List[str]:
         """
