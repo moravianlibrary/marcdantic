@@ -105,6 +105,8 @@ class MarcRecord(BaseModel):
     def from_xml(
         cls, data: _Element, context: MarcContext = MarcContext()
     ) -> "MarcRecord":
-        record = cls.model_validate(from_xml(data, context))
+        parsed_data = from_xml(data, context)
+        record = cls.model_validate(parsed_data)
+        record._marc = parsed_data["marc"]
         record._context = context
         return record
