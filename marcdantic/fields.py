@@ -9,9 +9,9 @@ FIELD_TAG_PATTERN = r"^\d{3}$"
 #: MARC field tag (e.g., '100', '245')
 FieldTag = Annotated[str, Field(..., pattern=FIELD_TAG_PATTERN)]
 #: MARC subfield code (e.g., 'a', 'b', '1')
-SubfieldCode = Annotated[str, Field(..., pattern=r"^[a-z0-9]$")]
+SubfieldCode = Annotated[str, Field(..., pattern=r"^[a-zA-Z0-9]$")]
 #: MARC indicator (one character: digit, letter, or space)
-Indicator = Annotated[str | None, Field(None, pattern=r"^[0-9a-z ]?$")]
+Indicator = Annotated[str | None, Field(None, pattern=r"^[0-9a-z\? ]?$")]
 
 
 class VariableField(BaseModel):
