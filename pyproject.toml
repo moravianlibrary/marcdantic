@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "marcdantic"
-version = "0.3.4"
+version = "0.3.5"
 authors = [
     {name = "Robert Randiak", email = "randiak@protonmail.com"}
 ]

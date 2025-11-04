@@ -178,7 +178,7 @@ def from_xml(root: _Element, context: MarcContext) -> Dict[str, Any]:
             marc_data += f"{code}".encode("ascii")
             marc_data += f"{value}".encode("utf-8")
 
-        append_field_data(tag, marc_data)
+        data_length += append_field_data(tag, marc_data)
         variable_field["subfields"] = subfields
         record["variable_fields"].setdefault(tag, []).append(variable_field)
 
