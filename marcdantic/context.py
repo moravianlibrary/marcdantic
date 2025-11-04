@@ -30,9 +30,9 @@ class MarcContext(BaseModel):
     issue_mapping: MarcIssueMapping = MarcIssueMapping(
         tag="996",
         barcode="b",
-        issuance_type="m",
-        volume_number="a",
-        volume_year="h",
+        issuance_type="s",
+        volume_number="v",
+        volume_year="y",
         bundle="j",
     )
     ignore_unknown_tags: bool = True
