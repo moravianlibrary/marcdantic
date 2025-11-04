@@ -1,5 +1,5 @@
 from lxml.etree import _Element
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel, PrivateAttr, model_validator
 
 from marcdantic.selectors import (
     ControlFieldsSelector,
@@ -110,3 +110,23 @@ class MarcRecord(BaseModel):
         record._marc = parsed_data["marc"]
         record._context = context
         return record
+
+    # --- Validation ---
+    @model_validator(mode="after")
+    def check_mandatory_fields(cls, model: "MarcRecord") -> "MarcRecord":
+        missing = []
+
+        for tag in model._context.mandatory_fields:
+            if tag in model.fixed_fields.root:
+                continue
+            if tag in model.variable_fields.root:
+                continue
+
+            missing.append(tag)
+
+        if missing:
+            raise ValueError(
+                f"Missing mandatory MARC field(s): {', '.join(missing)}"
+            )
+
+        return model

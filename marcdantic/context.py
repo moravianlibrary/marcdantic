@@ -1,4 +1,4 @@
-from typing import Dict, Literal
+from typing import Dict, List, Literal
 
 from pydantic import BaseModel
 
@@ -37,3 +37,4 @@ class MarcContext(BaseModel):
     )
     ignore_unknown_tags: bool = True
     mrc_encoding: str = "utf-8"
+    mandatory_fields: List[FieldTag] = ["001", "005", "008"]
