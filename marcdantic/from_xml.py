@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 
 from lxml.etree import _Element
 
-from .constants import LEADER_LENGTH, MARC_NS
+from .constants import LEADER_LENGTH, MARC_NS, MAX_RECORD_LENGTH
 from .context import MarcContext
 from .fields import FIELD_TAG_PATTERN, MarcFieldSelector
 
@@ -81,6 +81,11 @@ def from_xml(root: _Element, context: MarcContext) -> Dict[str, Any]:
 
     # Define a function to append data to the MARC bytes data
     def append_field_data(tag: str, field_data: bytes) -> int:
+        if data_length > MAX_RECORD_LENGTH:
+            raise ValueError(
+                "MARC record exceeds maximum allowed length of 99,999 bytes."
+            )
+
         directory.append(tag.encode("utf-8"))
         directory.append(f"{len(field_data) + 1:04d}".encode("utf-8"))
         directory.append(f"{data_length:05d}".encode("utf-8"))
@@ -189,12 +194,18 @@ def from_xml(root: _Element, context: MarcContext) -> Dict[str, Any]:
     base_address = LEADER_LENGTH + len(marc_directory)
     record_length = base_address + len(marc_data) + 1
 
-    new_leader = (
-        str(record_length).zfill(5).encode("utf-8")
-        + leader_text.encode("utf-8")[5:12]
-        + str(base_address).zfill(5).encode("utf-8")
-        + leader_text.encode("utf-8")[17:]
+    if record_length > MAX_RECORD_LENGTH:
+        raise ValueError(
+            "MARC record exceeds maximum allowed length of 99,999 bytes."
+        )
+
+    new_leader_text = (
+        str(record_length).zfill(5)
+        + leader_text[5:12]
+        + str(base_address).zfill(5)
+        + leader_text[17:]
     )
+    new_leader = new_leader_text.encode("ascii")
 
     record["marc"] = new_leader + marc_directory + marc_data + b"\x1d"
     record["leader"] = new_leader.decode("utf-8")
