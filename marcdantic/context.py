@@ -33,7 +33,7 @@ class MarcContext(BaseModel):
         issuance_type="s",
         volume_number="v",
         volume_year="y",
-        bundle="j",
+        bundle="i",
     )
     ignore_unknown_tags: bool = True
     mrc_encoding: str = "utf-8"
