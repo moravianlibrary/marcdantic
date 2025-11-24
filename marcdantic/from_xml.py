@@ -5,7 +5,7 @@ from lxml.etree import _Element
 
 from .constants import LEADER_LENGTH, MARC_NS, MAX_RECORD_LENGTH
 from .context import MarcContext
-from .fields import FIELD_TAG_PATTERN, MarcFieldSelector
+from .fields import FIELD_TAG_PATTERN
 
 
 def from_xml(root: _Element, context: MarcContext) -> Dict[str, Any]:
@@ -99,18 +99,17 @@ def from_xml(root: _Element, context: MarcContext) -> Dict[str, Any]:
     # Process Control Fields
     for controlfield in root.findall(".//marc:controlfield", MARC_NS):
         tag = controlfield.get("tag")
-        tag_alias = context.tag_aliases.get(tag)
 
-        if tag_alias is None:
-            pass
-        elif tag_alias == "skip":
+        if tag in context.skip_tags:
             continue
-        elif isinstance(tag_alias, MarcFieldSelector):
-            raise ValueError(
-                f"Control field tag '{tag}' cannot map to a variable field."
-            )
-        else:
-            tag = tag_alias
+
+        tag_alias = next(
+            (alias for alias in context.tag_aliases if alias.from_tag == tag),
+            None,
+        )
+
+        if tag_alias:
+            tag = tag_alias.tag
 
         if not re.match(FIELD_TAG_PATTERN, tag):
             if context.ignore_unknown_tags:
@@ -124,13 +123,16 @@ def from_xml(root: _Element, context: MarcContext) -> Dict[str, Any]:
     # Process Data Fields
     for datafield in root.findall(".//marc:datafield", MARC_NS):
         tag = datafield.get("tag")
-        tag_alias = context.tag_aliases.get(tag)
 
-        if tag_alias is None:
-            pass
-        elif tag_alias == "skip":
+        if tag in context.skip_tags:
             continue
-        elif isinstance(tag_alias, MarcFieldSelector):
+
+        tag_alias = next(
+            (alias for alias in context.tag_aliases if alias.from_tag == tag),
+            None,
+        )
+
+        if tag_alias:
             tag = tag_alias.tag
             code = tag_alias.code
             value = datafield.text
@@ -156,8 +158,6 @@ def from_xml(root: _Element, context: MarcContext) -> Dict[str, Any]:
                 variable_field
             )
             continue
-        else:
-            tag = tag_alias
 
         if not re.match(FIELD_TAG_PATTERN, tag):
             if context.ignore_unknown_tags:

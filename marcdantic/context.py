@@ -21,12 +21,18 @@ class MarcIssueMapping(BaseModel):
     bundle: SubfieldCode | None = None
 
 
+class TagAlias(BaseModel):
+    from_tag: str
+    tag: FieldTag
+    code: SubfieldCode | None = None
+
+
 class MarcContext(BaseModel):
-    tag_aliases: TagAliasMapping = {
-        "FMT": MarcFieldSelector(tag="990", code="a"),
-        "LDR": "skip",
-        "MZK": "991",
-    }
+    skip_tags: List[str] = ["LDR"]
+    tag_aliases: List[TagAlias] = [
+        TagAlias(from_tag="FMT", tag="990", code="a"),
+        TagAlias(from_tag="MZK", tag="991"),
+    ]
     issue_mapping: MarcIssueMapping = MarcIssueMapping(
         tag="996",
         barcode="b",

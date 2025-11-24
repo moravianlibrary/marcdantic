@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 from .constants import CONTROL_FIELDS, DIRECTORY_ENTRY_LENGTH, LEADER_LENGTH
 from .context import MarcContext
-from .fields import FIELD_TAG_PATTERN, MarcFieldSelector
+from .fields import FIELD_TAG_PATTERN
 
 
 def from_mrc(data: bytes, context: MarcContext) -> Dict[str, Any]:
@@ -98,18 +98,22 @@ def from_mrc(data: bytes, context: MarcContext) -> Dict[str, Any]:
 
         entry_data = data[data_start:data_end]
 
-        tag_alias = context.tag_aliases.get(entry_tag)
+        if entry_tag in context.skip_tags:
+            continue
+
+        tag_alias = next(
+            (
+                alias
+                for alias in context.tag_aliases
+                if alias.from_tag == entry_tag
+            ),
+            None,
+        )
         entry_code = None
 
-        if not tag_alias:
-            pass
-        elif tag_alias == "skip":
-            continue
-        elif isinstance(tag_alias, MarcFieldSelector):
+        if tag_alias:
             entry_tag = tag_alias.tag
             entry_code = tag_alias.code
-        else:
-            entry_tag = tag_alias
 
         if not re.match(FIELD_TAG_PATTERN, entry_tag):
             if context.ignore_unknown_tags:
