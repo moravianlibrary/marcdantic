@@ -100,7 +100,7 @@ class ControlFieldsSelector:
 
     @property
     def latest_transaction(self) -> datetime | None:
-        if "005" not in self._fixed_fields.root:
+        if not self._fixed_fields.root.get("005"):
             return None
         try:
             return datetime.strptime(

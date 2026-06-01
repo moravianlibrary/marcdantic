@@ -32,8 +32,8 @@ class MarcIssue(BaseModel):
 
     _variable_field: VariableField | None = PrivateAttr(default=None)
 
-    barcode: str
-    issuance_type: str
+    barcode: str | None
+    issuance_type: str | None
     volume_number: str | None
     volume_year: str | None
     bundle: str | None

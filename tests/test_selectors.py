@@ -1,15 +1,27 @@
 import unittest
 from datetime import datetime
 
+from marcdantic.context import MarcContext
 from marcdantic.fields import VariableField
 from marcdantic.record import MarcRecord
+
+MANDATORY_FIXED_FIELDS = {
+    "001": "000000001",
+    "005": "20230101120000.0",
+    "008": "210101s2023    xxu           000 0 eng d",
+}
+NO_MANDATORY_CONTEXT = MarcContext(mandatory_fields=[])
 
 
 class TestSelectors(unittest.TestCase):
     def test_leader_selector(self):
         leader_selector = MarcRecord(
             leader="00086nam  2200049   4500",
-            fixed_fields={},
+            fixed_fields={
+                "001": "000000001",
+                "005": "20230101120000.0",
+                "008": "210101s2023    xxu           000 0 eng d",
+            },
             variable_fields={},
         ).leader_selector
         self.assertEqual(leader_selector.record_length, 86)
@@ -28,6 +40,8 @@ class TestSelectors(unittest.TestCase):
         fixed_fields = MarcRecord(
             leader="00086nam  2200049   4500",
             fixed_fields={
+                "001": "000000001",
+                "005": "20230101120000.0",
                 "008": "210101s2023    xxu           000 0 eng d",
             },
             variable_fields={},
@@ -46,6 +60,7 @@ class TestSelectors(unittest.TestCase):
                 "001": "000000123",
                 "003": "OCoLC",
                 "005": "20230101123456.0",
+                "008": "210101s2023    xxu           000 0 eng d",
             },
             variable_fields={},
         ).control_fields_selector
@@ -62,6 +77,8 @@ class TestSelectors(unittest.TestCase):
             fixed_fields={
                 "001": "000000123",
                 "003": "OCoLC",
+                "005": "",
+                "008": "210101s2023    xxu           000 0 eng d",
             },
             variable_fields={},
         ).control_fields_selector
@@ -74,6 +91,7 @@ class TestSelectors(unittest.TestCase):
                 "001": "000000123",
                 "003": "OCoLC",
                 "005": "invalid-date",
+                "008": "210101s2023    xxu           000 0 eng d",
             },
             variable_fields={},
         ).control_fields_selector
@@ -83,7 +101,7 @@ class TestSelectors(unittest.TestCase):
     def test_issues_selector_empty(self):
         issues_selector = MarcRecord(
             leader="00086nam  2200049   4500",
-            fixed_fields={},
+            fixed_fields=MANDATORY_FIXED_FIELDS,
             variable_fields={},
         ).issues_selector
         self.assertEqual(len(issues_selector.all), 0)
@@ -91,7 +109,7 @@ class TestSelectors(unittest.TestCase):
     def test_issues_selector_with_issues(self):
         record = MarcRecord(
             leader="00086nam  2200049   4500",
-            fixed_fields={},
+            fixed_fields=MANDATORY_FIXED_FIELDS,
             variable_fields={
                 "996": [
                     {
@@ -99,8 +117,8 @@ class TestSelectors(unittest.TestCase):
                         "ind2": " ",
                         "subfields": {
                             "b": ["123456789"],
-                            "m": ["monographic"],
-                            "a": ["v.1"],
+                            "s": ["monographic"],
+                            "v": ["v.1"],
                         },
                     },
                     {
@@ -108,8 +126,8 @@ class TestSelectors(unittest.TestCase):
                         "ind2": " ",
                         "subfields": {
                             "b": ["987654321"],
-                            "m": ["serial"],
-                            "a": ["v.2"],
+                            "s": ["serial"],
+                            "v": ["v.2"],
                         },
                     },
                 ]
@@ -126,7 +144,7 @@ class TestSelectors(unittest.TestCase):
     def test_issues_selector_find_by_barcode(self):
         issues_selector = MarcRecord(
             leader="00086nam  2200049   4500",
-            fixed_fields={},
+            fixed_fields=MANDATORY_FIXED_FIELDS,
             variable_fields={
                 "996": [
                     {
@@ -134,8 +152,8 @@ class TestSelectors(unittest.TestCase):
                         "ind2": " ",
                         "subfields": {
                             "b": ["123456789"],
-                            "m": ["monographic"],
-                            "a": ["v.1"],
+                            "s": ["monographic"],
+                            "v": ["v.1"],
                         },
                     },
                     {
@@ -143,8 +161,8 @@ class TestSelectors(unittest.TestCase):
                         "ind2": " ",
                         "subfields": {
                             "b": ["987654321"],
-                            "m": ["serial"],
-                            "a": ["v.2"],
+                            "s": ["serial"],
+                            "v": ["v.2"],
                         },
                     },
                 ]
@@ -159,7 +177,7 @@ class TestSelectors(unittest.TestCase):
     def test_variable_field_query(self):
         variable_fields = MarcRecord(
             leader="00086nam  2200049   4500",
-            fixed_fields={},
+            fixed_fields=MANDATORY_FIXED_FIELDS,
             variable_fields={
                 "015": [
                     {
