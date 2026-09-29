@@ -117,6 +117,15 @@ def from_xml(root: _Element, context: MarcContext) -> Dict[str, Any]:
             raise ValueError(f"Invalid MARC tag '{tag}' encountered.")
 
         text = controlfield.text
+
+        # <controlfield tag="005"/> carries no value. Recording it as ""
+        # would let a mandatory-field check pass on a field that says
+        # nothing, and `text.encode` on None raises AttributeError rather
+        # than anything a caller could interpret. Leaving it out states
+        # what is true: the field is not there.
+        if text is None:
+            continue
+
         data_length += append_field_data(tag, text.encode("utf-8"))
         record["fixed_fields"][tag] = text
 
@@ -136,6 +145,9 @@ def from_xml(root: _Element, context: MarcContext) -> Dict[str, Any]:
             tag = tag_alias.tag
             code = tag_alias.code
             value = datafield.text
+
+            if value is None:
+                continue
 
             if not re.match(FIELD_TAG_PATTERN, tag):
                 if context.ignore_unknown_tags:
@@ -176,6 +188,13 @@ def from_xml(root: _Element, context: MarcContext) -> Dict[str, Any]:
         for subfield in datafield.findall("marc:subfield", MARC_NS):
             code = subfield.get("code")
             value = subfield.text
+
+            # <subfield code="a"/> is ordinary in real catalogue data and
+            # carries nothing. It used to arrive at the model as None and
+            # fail the whole record over one empty subfield; the line below
+            # would also have spelled the word "None" into the raw bytes.
+            if value is None:
+                continue
 
             subfields.setdefault(code, []).append(value)
 

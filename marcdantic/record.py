@@ -1,5 +1,5 @@
 from lxml.etree import _Element
-from pydantic import BaseModel, PrivateAttr, model_validator
+from pydantic import BaseModel, PrivateAttr, ValidationInfo, model_validator
 
 from marcdantic.selectors import (
     ControlFieldsSelector,
@@ -11,6 +11,9 @@ from .context import MarcContext
 from .fields import FixedFields, VariableFields
 from .from_mrc import from_mrc
 from .from_xml import from_xml
+
+#: Key the constructors use to pass a MarcContext through validation.
+_CONTEXT_KEY = "marc_context"
 
 
 class MarcRecord(BaseModel):
@@ -88,7 +91,7 @@ class MarcRecord(BaseModel):
     def from_json(
         cls, data: dict, context: MarcContext = MarcContext()
     ) -> "MarcRecord":
-        record = cls.model_validate(data)
+        record = cls.model_validate(data, context={_CONTEXT_KEY: context})
         record._context = context
         return record
 
@@ -96,7 +99,9 @@ class MarcRecord(BaseModel):
     def from_mrc(
         cls, data: bytes, context: MarcContext = MarcContext()
     ) -> "MarcRecord":
-        record = cls.model_validate(from_mrc(data, context))
+        record = cls.model_validate(
+            from_mrc(data, context), context={_CONTEXT_KEY: context}
+        )
         record._marc = data
         record._context = context
         return record
@@ -106,20 +111,37 @@ class MarcRecord(BaseModel):
         cls, data: _Element, context: MarcContext = MarcContext()
     ) -> "MarcRecord":
         parsed_data = from_xml(data, context)
-        record = cls.model_validate(parsed_data)
+        record = cls.model_validate(
+            parsed_data, context={_CONTEXT_KEY: context}
+        )
         record._marc = parsed_data["marc"]
         record._context = context
         return record
 
     # --- Validation ---
     @model_validator(mode="after")
-    def check_mandatory_fields(cls, model: "MarcRecord") -> "MarcRecord":
+    def check_mandatory_fields(self, info: ValidationInfo) -> "MarcRecord":
+        """
+        Reject a record that is missing a field the caller requires.
+
+        The context has to arrive through pydantic's own validation
+        context rather than `self._context`, which the constructors can
+        only assign once `model_validate` has returned -- by which time
+        this has already run. Read from the private attribute it saw the
+        default every time, so a caller asking for a shorter list of
+        mandatory fields was quietly held to the default one.
+        """
+
+        context: MarcContext = (info.context or {}).get(
+            _CONTEXT_KEY
+        ) or MarcContext()
+
         missing = []
 
-        for tag in model._context.mandatory_fields:
-            if tag in model.fixed_fields.root:
+        for tag in context.mandatory_fields:
+            if tag in self.fixed_fields.root:
                 continue
-            if tag in model.variable_fields.root:
+            if tag in self.variable_fields.root:
                 continue
 
             missing.append(tag)
@@ -129,4 +151,4 @@ class MarcRecord(BaseModel):
                 f"Missing mandatory MARC field(s): {', '.join(missing)}"
             )
 
-        return model
+        return self
