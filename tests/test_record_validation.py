@@ -107,5 +107,67 @@ class TestAnEmptySubfieldIsNotABrokenRecord(unittest.TestCase):
         self.assertIn("005", str(caught.exception))
 
 
+class TestAnIndicatorOutsideTheStandardStillParses(unittest.TestCase):
+    """MZK03-001252166 carries ind1="S" on a 500, and vanished over it.
+
+    The record was refused by the parser, so the catalogue answered 404 for
+    it and the review queue never saw it. Both halves of that are wrong: the
+    record is readable, and the indicator is a cataloguing error somebody
+    should be told about — which cannot happen while the record holding it
+    is the one thing nobody can open.
+    """
+
+    def _record(self, ind1: str, context: MarcContext | None = None) -> MarcRecord:
+        return MarcRecord.from_xml(
+            etree.fromstring(
+                f'<record xmlns="{MARC_NS}">'
+                "<leader>00000nam a2200000 a 4500</leader>"
+                '<controlfield tag="001">000001</controlfield>'
+                '<controlfield tag="005">000000</controlfield>'
+                '<controlfield tag="008">000000</controlfield>'
+                f'<datafield tag="500" ind1="{ind1}" ind2=" ">'
+                '<subfield code="a">A note</subfield>'
+                "</datafield>"
+                "</record>".encode()
+            ),
+            context or MarcContext(),
+        )
+
+    def _field(self, ind1: str):
+        return self._record(ind1).variable_fields.root["500"][0]
+
+    def test_an_uppercase_indicator_is_kept_as_it_was_catalogued(self):
+        self.assertEqual(self._field("S").ind1, "S")
+
+    def test_the_fill_character_is_kept_too(self):
+        self.assertEqual(self._field("|").ind1, "|")
+
+    def test_a_blank_is_still_nothing(self):
+        self.assertIsNone(self._field(" ").ind1)
+
+    def test_a_lowercase_indicator_is_unaffected(self):
+        self.assertEqual(self._field("a").ind1, "a")
+
+    def test_the_raw_bytes_keep_the_indicator(self):
+        self.assertIn(b"S ", self._record("S")._marc)
+
+    def test_a_caller_may_hold_records_to_the_standard(self):
+        with self.assertRaises(ValueError) as caught:
+            self._record("S", MarcContext(indicator_pattern=r"^[0-9a-z| ]?$"))
+
+        self.assertIn("'S'", str(caught.exception))
+
+    def test_a_tighter_pattern_still_takes_what_it_allows(self):
+        field = self._record(
+            "1", MarcContext(indicator_pattern=r"^[0-9a-z| ]?$")
+        ).variable_fields.root["500"][0]
+
+        self.assertEqual(field.ind1, "1")
+
+    def test_two_characters_are_not_an_indicator_under_any_pattern(self):
+        with self.assertRaises(ValueError):
+            self._record("10")
+
+
 if __name__ == "__main__":
     unittest.main()

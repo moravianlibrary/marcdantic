@@ -8,12 +8,10 @@ from marcdantic.selectors import (
 )
 
 from .context import MarcContext
+from .fields import CONTEXT_KEY as _CONTEXT_KEY
 from .fields import FixedFields, VariableFields
 from .from_mrc import from_mrc
 from .from_xml import from_xml
-
-#: Key the constructors use to pass a MarcContext through validation.
-_CONTEXT_KEY = "marc_context"
 
 
 class MarcRecord(BaseModel):

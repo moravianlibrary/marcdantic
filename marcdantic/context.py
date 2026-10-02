@@ -2,7 +2,12 @@ from typing import Dict, List, Literal
 
 from pydantic import BaseModel
 
-from .fields import FieldTag, MarcFieldSelector, SubfieldCode
+from .fields import (
+    DEFAULT_INDICATOR_PATTERN,
+    FieldTag,
+    MarcFieldSelector,
+    SubfieldCode,
+)
 
 SkipTag = Literal["skip"]
 TagAliasMapping = Dict[str, FieldTag | MarcFieldSelector | SkipTag]
@@ -44,3 +49,6 @@ class MarcContext(BaseModel):
     ignore_unknown_tags: bool = True
     mrc_encoding: str = "utf-8"
     mandatory_fields: List[FieldTag] = ["001", "005", "008"]
+    #: What an indicator may hold. The default takes the byte as it was
+    #: catalogued; `r"^[0-9a-z| ]?$"` holds records to MARC 21 instead.
+    indicator_pattern: str = DEFAULT_INDICATOR_PATTERN

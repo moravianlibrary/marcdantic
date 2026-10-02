@@ -1,8 +1,16 @@
+import re
 from functools import lru_cache
 from typing import Annotated, Any, Dict, List, Sequence
 
 import jq
-from pydantic import BaseModel, Field, PrivateAttr, RootModel, model_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    PrivateAttr,
+    RootModel,
+    ValidationInfo,
+    model_validator,
+)
 
 #: Pattern used to validate field tags (must be exactly three digits)
 FIELD_TAG_PATTERN = r"^\d{3}$"
@@ -11,8 +19,23 @@ FIELD_TAG_PATTERN = r"^\d{3}$"
 FieldTag = Annotated[str, Field(..., pattern=FIELD_TAG_PATTERN)]
 #: MARC subfield code (e.g., 'a', 'b', '1')
 SubfieldCode = Annotated[str, Field(..., pattern=r"^[a-zA-Z0-9]$")]
-#: MARC indicator (one character: digit, letter, or space)
-Indicator = Annotated[str | None, Field(None, pattern=r"^[0-9a-z\? ]?$")]
+#: Key the constructors use to pass a MarcContext through validation.
+CONTEXT_KEY = "marc_context"
+
+#: What an indicator is allowed to hold, unless the caller says otherwise.
+#:
+#: MARC 21 defines indicator values per field, and only lowercase letters,
+#: digits, the fill character and blank are among them. Real catalogues hold
+#: others anyway — an uppercase letter is the usual slip — and refusing to
+#: parse those records loses the record and the error in it at once. The
+#: default is therefore the printable ASCII block: one byte, read as ASCII,
+#: whatever it says. A caller wanting the standard enforced sets
+#: ``MarcContext(indicator_pattern=...)``.
+DEFAULT_INDICATOR_PATTERN = r"^[\x20-\x7e]?$"
+
+#: MARC indicator: one character, or nothing. Which characters is a
+#: question for the context, checked on `VariableField`.
+Indicator = Annotated[str | None, Field(None, max_length=1)]
 
 
 @lru_cache(maxsize=512)
@@ -64,10 +87,27 @@ class VariableField(BaseModel):
     subfields: Dict[SubfieldCode, List[str]]
 
     @model_validator(mode="after")
-    def postprocess_indicators(self) -> "VariableField":
+    def postprocess_indicators(self, info: ValidationInfo) -> "VariableField":
         """
-        Converts space indicators (' ') to None for consistency.
+        Check each indicator against the caller's pattern, then read a
+        space as nothing.
+
+        The pattern arrives through pydantic's validation context, the
+        way the mandatory fields do: a record is parsed before it has a
+        `MarcContext` to read from, so the type itself cannot carry the
+        answer.
         """
+        context = (info.context or {}).get(CONTEXT_KEY)
+        pattern = getattr(context, "indicator_pattern", DEFAULT_INDICATOR_PATTERN)
+
+        for name in ("ind1", "ind2"):
+            value = getattr(self, name)
+            if value is not None and not re.match(pattern, value):
+                raise ValueError(
+                    f"Invalid MARC indicator {value!r} for {name}: "
+                    f"does not match {pattern!r}"
+                )
+
         if self.ind1 == " ":
             self.ind1 = None
         if self.ind2 == " ":

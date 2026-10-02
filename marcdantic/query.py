@@ -49,20 +49,21 @@ class MarcCondition(BaseModel):
         The operator used to match the value.
 
     ind1 : str | None, optional
-        First indicator value to match;
-        supports digits, letters, space, or underscore.
+        First indicator value to match; any one printable ASCII character.
 
     ind2 : str | None, optional
-        Second indicator value to match;
-        supports digits, letters, space, or underscore.
+        Second indicator value to match; any one printable ASCII character.
     """
 
     field: str = Field(..., min_length=3, max_length=3, pattern=r"^\d{3}$")
     subfield: str | None = Field(None, pattern=r"^[a-z0-9]$")
     value: str
     operator: SearchOperator = SearchOperator.Exact
-    ind1: str | None = Field(None, pattern=r"^[\\_0-9a-z ]?$")
-    ind2: str | None = Field(None, pattern=r"^[\\_0-9a-z ]?$")
+    # As wide as `Indicator`: a value the parser accepts has to be one the
+    # caller can then search for, or the records holding it are readable and
+    # unreachable.
+    ind1: str | None = Field(None, pattern=r"^[\x20-\x7e]?$")
+    ind2: str | None = Field(None, pattern=r"^[\x20-\x7e]?$")
 
 
 MarcTerm = Union[MarcCondition, "MarcBoolQuery"]
